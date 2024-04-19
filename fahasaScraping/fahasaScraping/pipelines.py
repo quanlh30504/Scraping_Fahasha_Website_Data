@@ -90,7 +90,7 @@ class SavingToMySqlPipeline:
                 f = "{}-{}-{}"
                 publication_date = f.format(year, month, day)
             else:
-                publication_date = "1-1-2023"
+                publication_date = "2023-1-1"
         language = item["Language"]  ## possible NULL
         pages = item["NumOfPages"]
         if pages is not None:
@@ -141,6 +141,7 @@ class SavingToMySqlPipeline:
                 author_id = self.cur.lastrowid
 
         self.cur.execute("insert into book_author (book_id, author_id) values(%s,%s)", (book_id, author_id,))
+
         # self.mydb.commit()
 
     def insert_category(self, book_id, categories):
@@ -156,8 +157,7 @@ class SavingToMySqlPipeline:
             category_id = self.cur.lastrowid
             parent_id = category_id
 
-        self.cur.execute("insert into book_category (book_id,category_id) values(%s,%s)",
-                         (book_id, category_id,))
+
         for i in range(1, len(categories)):
             self.cur.execute("select id from category where name = %s", (categories[i],))
             result = self.cur.fetchone()
@@ -166,6 +166,11 @@ class SavingToMySqlPipeline:
             else:
                 self.cur.execute("insert into category(name,parent_id) values(%s,%s)", (categories[i], parent_id,))
                 parent_id = self.cur.lastrowid
+            if i == len(categories) - 1:
+                category_id = parent_id
+
+        self.cur.execute("insert into book_category (book_id,category_id) values(%s,%s)",
+                         (book_id, category_id,))
 
         # self.mydb.commit()
 
